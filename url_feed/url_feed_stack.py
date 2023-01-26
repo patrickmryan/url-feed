@@ -62,6 +62,10 @@ class UrlFeedStack(Stack):
             )
             iam.PermissionsBoundary.of(self).apply(policy)
 
+        app_tags = self.node.try_get_context("Tags") or []
+        for key, value in app_tags.items():
+            Tags.of(self).add(key, value)
+
         # if a KMS key name is provided, enable bucket encryption
         kms_key_alias = self.node.try_get_context("KmsKeyAlias")
         if kms_key_alias:
@@ -128,7 +132,6 @@ class UrlFeedStack(Stack):
             ),
             handler="retrieve_url_feed.lambda_handler",
             environment={
-                # **debug_env,
                 "BUCKET_SSM_PARAM": bucket_ssm_param.parameter_name,
             },
             timeout=Duration.seconds(60),
