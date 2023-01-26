@@ -11,10 +11,6 @@ def lambda_handler(event, context):
     qsp = event.get("queryStringParameters", {})
     if not qsp:
         qsp = {}
-    body = event.get("body", "")
-    if not body:
-        body = ""
-    headers = event.get("headers", {})
 
     ssm_client = boto3.client("ssm")
 
@@ -29,16 +25,19 @@ def lambda_handler(event, context):
     )
 
     if "md5" in qsp:
-        pass  # return the MD5 hash / e_tag
+        # return the MD5 hash / e_tag
 
-    # details = {
-    #     **qsp,
-    #     **{"body": body},
-    #     **headers,
-    #     **bucket_ssm_param
-    # }
-    # if body:
-    #     details["body"] = body
+        e_tag = feed_object.e_tag
+        # delete the leading and trailing quotes
+        e_tag = e_tag.replace(r'"', "")
+
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Content-Type": "text/plain",
+            },
+            "body": e_tag,
+        }
 
     # https://botocore.amazonaws.com/v1/documentation/api/latest/reference/response.html
     response = feed_object.get()
@@ -48,14 +47,7 @@ def lambda_handler(event, context):
         "headers": {
             "Content-Type": "text/plain",
         },
-        "body": (response["Body"]).read().decode()
-        # "body": "Hello, CDK! You have hit "
-        # + event["path"]
-        # + "\nDetails = "
-        # + json.dumps(details, indent=2)
-        # + "\n",
+        "body": (response["Body"]).read().decode(),
     }
-
-    # print(json.dumps(return_dict))
 
     return return_dict

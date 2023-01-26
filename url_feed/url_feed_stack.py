@@ -106,7 +106,6 @@ class UrlFeedStack(Stack):
             "service-role/AWSLambdaBasicExecutionRole"
         )
         lambda_root = "lambda"
-
         managed_policies = [basic_lambda_policy]
 
         # role and function for calling the API
@@ -115,27 +114,6 @@ class UrlFeedStack(Stack):
             "RetrieveUrlFeedLambdaRole",
             assumed_by=lambda_principal,
             managed_policies=managed_policies,
-            # inline_policies={
-            #     "inlineTestApiRole": iam.PolicyDocument(
-            #         assign_sids=True,
-            #         statements=[
-            #             allow_read_inbound_bucket_read,
-            #             iam.PolicyStatement(
-            #                 actions=["s3:PutObject", "s3:PutObjectTagging"],
-            #                 effect=iam.Effect.ALLOW,
-            #                 resources=[
-            #                     outbound_bucket.bucket_arn,
-            #                     outbound_bucket.arn_for_objects("*"),
-            #                 ],
-            #             ),
-            #             iam.PolicyStatement(
-            #                 actions=["events:PutEvents"],
-            #                 effect=iam.Effect.ALLOW,
-            #                 resources=[event_bus.event_bus_arn],
-            #             ),
-            #         ],
-            #     )
-            # },
         )
 
         feed_bucket.grant_read(service_role)
