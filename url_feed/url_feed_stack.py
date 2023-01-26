@@ -93,7 +93,7 @@ class UrlFeedStack(Stack):
 
         url_feed_object_info = {
             "bucket_name": feed_bucket.bucket_name,
-            "object_key": "badurls.txt",
+            # "object_key": "badurls.txt",
         }
 
         bucket_ssm_param = ssm.StringParameter(

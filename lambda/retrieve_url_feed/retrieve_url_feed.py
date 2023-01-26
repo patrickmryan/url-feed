@@ -17,6 +17,18 @@ def lambda_handler(event, context):
     if not qsp:
         qsp = {}
 
+    filename = qsp.get("filename", None)
+    if not filename:
+        message = "expected ?filename= parameter in URL"
+        print(message)
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Content-Type": "text/plain",
+            },
+            "body": message,
+        }
+
     ssm_client = boto3.client("ssm")
 
     resp = ssm_client.get_parameter(
@@ -26,7 +38,9 @@ def lambda_handler(event, context):
 
     s3 = boto3.resource("s3")
     feed_object = s3.Object(
-        bucket_ssm_param["bucket_name"], bucket_ssm_param["object_key"]
+        bucket_ssm_param["bucket_name"],
+        filename
+        # bucket_ssm_param["object_key"]
     )
 
     # Get the e_tag first. If there is any problem getting the file,
@@ -38,21 +52,6 @@ def lambda_handler(event, context):
     except ClientError as exc:
         message = (
             f"error retrieving s3://{feed_object.bucket_name}/{feed_object.key}: {exc}"
-        )
-        print(message)
-        return {
-            "statusCode": 500,
-            "headers": {
-                "Content-Type": "text/plain",
-            },
-            "body": message,
-        }
-
-    if feed_object.content_length > MAX_PAYLOAD_SIZE:
-        message = (
-            f"s3://{feed_object.bucket_name}/{feed_object.key}"
-            + f" is {feed_object.content_length} bytes, which exceeds "
-            + f" the maximum size of {MAX_PAYLOAD_SIZE} bytes"
         )
         print(message)
         return {
@@ -76,6 +75,21 @@ def lambda_handler(event, context):
                 "Content-Type": "text/plain",
             },
             "body": e_tag,
+        }
+
+    if feed_object.content_length > MAX_PAYLOAD_SIZE:
+        message = (
+            f"s3://{feed_object.bucket_name}/{feed_object.key}"
+            + f" is {feed_object.content_length} bytes, which exceeds "
+            + f" the maximum size of {MAX_PAYLOAD_SIZE} bytes"
+        )
+        print(message)
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Content-Type": "text/plain",
+            },
+            "body": message,
         }
 
     # https://botocore.amazonaws.com/v1/documentation/api/latest/reference/response.html
