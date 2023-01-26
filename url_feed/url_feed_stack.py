@@ -158,50 +158,12 @@ class UrlFeedStack(Stack):
             log_retention=log_retention,
         )
 
+        # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_apigateway/README.html#aws-lambda-backed-apis
+
         # add API gw
         feed_api = apigw.LambdaRestApi(self, "RestApi", handler=retrieve_feed_lambda)
 
         feed = feed_api.root.add_resource("feed")
         feed.add_method("GET")  # , apigw.LambdaIntegration(retrieve_feed_lambda)
-
-        # feed_api = apigw.LambdaRestApi(
-        #     self,
-        #     "UrlFeedRestApi",
-        #     handler=retrieve_feed_lambda
-        #     # endpoint_configuration=apigw.EndpointConfiguration(
-        #     #     types=[apigw.EndpointType.PRIVATE]
-        #     # ),
-
-        #       # EDGE
-        #     # default_integration=apigw.LambdaIntegration(
-        #     #     # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_apigateway/LambdaIntegration.html
-        #     #     test_api_lambda,
-        #     #     # content_handling
-        #     #     # request_parameters
-        #     #     # vpc_link
-        #     # ),
-
-        #     # deploy=True,
-        # )
-
-        # feed = feed_api.root.add_resource("feed")
-        # feed.add_method("GET") # GET /items
-
-        # feed_api.root.add_method("GET",
-        #     apigw.LambdaIntegration(
-        #         # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_apigateway/LambdaIntegration.html
-        #         retrieve_feed_lambda,
-        #         # content_handling
-        #         # request_parameters
-        #         # vpc_link
-        #     ),
-        # )
-
-        # # . maybe. might be automagic.
-        # retrieve_feed_lambda.add_permission(
-        #     "ApiGwCallFeedLambda",
-        #     principal=iam.ServicePrincipal("apigateway.amazonaws.com"),
-        #     # source_arn=test_api.arn
-        # )
 
         CfnOutput(self, "RestApiURL", value=feed_api.url)
