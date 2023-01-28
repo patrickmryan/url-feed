@@ -14,8 +14,6 @@ def lambda_handler(event, context):
         print(json.dumps(event))
 
     qsp = event.get("queryStringParameters", {})
-    if not qsp:
-        qsp = {}
 
     filename = qsp.get("filename", None)
     if not filename:
