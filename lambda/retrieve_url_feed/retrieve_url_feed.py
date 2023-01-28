@@ -29,19 +29,38 @@ def lambda_handler(event, context):
             "body": message,
         }
 
+    ssm_param_name = os.environ.get("BUCKET_SSM_PARAM", None)
+    if not ssm_param_name:
+        message = "missing parameter BUCKET_SSM_PARAM"
+        print(message)
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Content-Type": "text/plain",
+            },
+            "body": message,
+        }
+
     ssm_client = boto3.client("ssm")
 
-    resp = ssm_client.get_parameter(
-        Name=os.environ["BUCKET_SSM_PARAM"], WithDecryption=True
-    )
+    try:
+        resp = ssm_client.get_parameter(Name=ssm_param_name, WithDecryption=True)
+
+    except ClientError as exc:
+        message = f"error retrieving SSM parameter named {ssm_param_name}: {exc}"
+        print(message)
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Content-Type": "text/plain",
+            },
+            "body": message,
+        }
+
     bucket_ssm_param = json.loads(resp["Parameter"]["Value"])
 
     s3 = boto3.resource("s3")
-    feed_object = s3.Object(
-        bucket_ssm_param["bucket_name"],
-        filename
-        # bucket_ssm_param["object_key"]
-    )
+    feed_object = s3.Object(bucket_ssm_param["bucket_name"], filename)
 
     # Get the e_tag first. If there is any problem getting the file,
     # an exception will be thrown. Handle it gracefully.
@@ -94,7 +113,6 @@ def lambda_handler(event, context):
 
     # https://botocore.amazonaws.com/v1/documentation/api/latest/reference/response.html
 
-    # add logic to check object size. error if too big.
     response = feed_object.get()
 
     return_dict = {
@@ -108,10 +126,13 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     import pdb
+    import sys
+
+    # python3 -m pdb retrieve_url_feed.py '{"queryStringParameters": {"filename":"goodurls.txt"} }'
 
     event = {}
     # with open(sys.argv[1], 'r') as fp:
     #     event = json.load(fp)
 
-    response = lambda_handler(event=event, context={})
-    print(response)
+    response = lambda_handler(event=json.loads(sys.argv[1]), context={})
+    print(json.dumps(response, indent=2))
