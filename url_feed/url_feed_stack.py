@@ -63,7 +63,7 @@ class UrlFeedStack(Stack):
             iam.PermissionsBoundary.of(self).apply(policy)
 
         # apply tags to everything in the stack
-        app_tags = self.node.try_get_context("Tags") or []
+        app_tags = self.node.try_get_context("Tags") or {}
         for key, value in app_tags.items():
             Tags.of(self).add(key, value)
 
@@ -104,7 +104,7 @@ class UrlFeedStack(Stack):
         )
 
         # setting for all python Lambda functions
-        runtime = _lambda.Runtime.PYTHON_3_8
+        runtime = _lambda.Runtime.PYTHON_3_9
         log_retention = logs.RetentionDays.ONE_WEEK
         lambda_principal = iam.ServicePrincipal("lambda.amazonaws.com")
         basic_lambda_policy = iam.ManagedPolicy.from_aws_managed_policy_name(
