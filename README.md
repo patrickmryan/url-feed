@@ -12,7 +12,7 @@ This CDK stack implements a URL feed for use by Cisco Secure Management Center.
 
 Once deployed, the there will be a URL that will return either a feed of URLs or an MD5 hash of the URL file.
 Per the Cisco documentation, the URLs must be returned in a text file, one per line. The optional MD5 hash
-can be used to detect whether or not a change has occurred.
+can be used by FMC to detect whether or not a change has occurred.
 
 The file of URLs need to be placed in the S3 bucket. The name of file can be anything but will be used when
 the complete URL is entered into the Cisco management center. The specific URL will be returned in the Cloud Formation output.
@@ -21,7 +21,7 @@ The syntax of the feed URL is as follows:
 
 `https://<URL>/?filename=<filename>`
 
-The MD5 has URL is the same except that `md5` is added as a query string parameter.
+The MD5 hash URL is the same except that `md5` is added as a query string parameter.
 
 `https://<URL>/?filename=<filename>&md5`
 
