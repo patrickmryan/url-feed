@@ -62,6 +62,7 @@ class UrlFeedStack(Stack):
             )
             iam.PermissionsBoundary.of(self).apply(policy)
 
+        # apply tags to everything in the stack
         app_tags = self.node.try_get_context("Tags") or []
         for key, value in app_tags.items():
             Tags.of(self).add(key, value)
@@ -127,9 +128,7 @@ class UrlFeedStack(Stack):
             self,
             "RetrieveUrlFeedLambda",
             runtime=runtime,
-            code=_lambda.Code.from_asset(
-                os.path.join(lambda_root, "retrieve_url_feed")
-            ),
+            code=_lambda.Code.from_asset(join(lambda_root, "retrieve_url_feed")),
             handler="retrieve_url_feed.lambda_handler",
             environment={
                 "BUCKET_SSM_PARAM": bucket_ssm_param.parameter_name,
@@ -145,6 +144,7 @@ class UrlFeedStack(Stack):
         feed_api = apigw.LambdaRestApi(self, "RestApi", handler=retrieve_feed_lambda)
 
         feed = feed_api.root.add_resource("feed")
-        feed.add_method("GET")  # , apigw.LambdaIntegration(retrieve_feed_lambda)
+        feed.add_method("GET")
 
         CfnOutput(self, "RestApiURL", value=feed_api.url)
+        CfnOutput(self, "FeedBucket", value=feed_bucket.bucket_name)

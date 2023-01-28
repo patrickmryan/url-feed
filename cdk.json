@@ -16,6 +16,7 @@
   },
   "context": {
     "PermissionsBoundaryPolicyArn": "",
+    "PermissionsBoundaryPolicyName": "",
     "Tags": {
       "o_Environment": "Development"
     },

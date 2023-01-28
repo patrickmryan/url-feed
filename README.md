@@ -1,58 +1,59 @@
+# URL Feed for Cisco Secure Management Center
 
-# Welcome to your CDK Python project!
+This CDK stack implements a URL feed for use by Cisco Secure Management Center.
 
-This is a blank project for CDK development with Python.
+[Security Intelligence Sources](https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/management-center/device-config/720/management-center-device-config-72/access-security-intelligence.html)
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+[Security Intelligence Lists and Feeds](https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/management-center/device-config/720/management-center-device-config-72/objects-object-mgmt.html#ID-2243-00000135)
 
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+# Functionality
 
-To manually create a virtualenv on MacOS and Linux:
+Once deployed, the there will be a URL that will return either a feed of URLs or an MD5 hash of the URL file.
+Per the Cisco documentation, the URLs must be returned in a text file, one per line. The optional MD5 hash
+can be used to detect whether or not a change has occurred.
 
-```
-$ python3 -m venv .venv
-```
+The file of URLs need to be placed in the S3 bucket. The name of file can be anything but will be used when
+the complete URL is entered into the Cisco management center. The specific URL will be returned in the Cloud Formation output.
 
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
+The syntax of the feed URL is as follows:
 
-```
-$ source .venv/bin/activate
-```
+`https://<URL>/?filename=<URL filename>`
 
-If you are a Windows platform, you would activate the virtualenv like this:
+The MD5 has URL is the same except that `md5` is added as a query string parameter.
+
+`https://<URL>/?filename=<URL filename>&md5`
+
+The API can be tested via `curl` on the command line:
 
 ```
-% .venv\Scripts\activate.bat
-```
-
-Once the virtualenv is activated, you can install the required dependencies.
-
-```
-$ pip install -r requirements.txt
-```
-
-At this point you can now synthesize the CloudFormation template for this code.
+[~/ec/projects/ose/url-feed] | curl 'https://fapnrqdul7.execute-api.us-east-1.amazonaws.com/prod/?filename=badurls.txt'
+superbadurl1.com
+superbadurl2.com
+superbadurl3.com
+superbadurl4.com
+gambling.com
+[~/ec/projects/ose/url-feed] | curl 'https://fapnrqdul7.execute-api.us-east-1.amazonaws.com/prod/?filename=badurls.txt&md5'
+29472b640ba9b5b765c27195bcf66e98
 
 ```
-$ cdk synth
-```
 
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
+# cdk.json Variables
 
-## Useful commands
+- PermissionsBoundaryPolicyArn (String) - The full ARN for a policy to be used as the permissions boundary policy on all roles. (Optional)
+- PermissionsBoundaryPolicyName (String) - The name for a policy to be used as the permissions boundary policy on all roles. (Optional)
+- Tags (Mapping) - A mapping of key/value pairs. Will be attached as tags to all taggable resources. (Optional)
 
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
+# Internals
 
-Enjoy!
+The stack creates the following resources:
+
+- An S3 bucket
+- An SSM parameter
+- A lambda function
+- An API gateway
+
+# Failure conditions
+
+- Failure to retrieve file from S3 (file missing, permission error, etc.)
+- File too large. (API gateway limits payload to 10MB)
+- Failure to retrieve SSM parameter.
