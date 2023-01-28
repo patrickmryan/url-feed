@@ -10,14 +10,14 @@ MAX_PAYLOAD_SIZE = 10 * (2**20)
 
 def lambda_handler(event, context):
 
-    if "DEBUG" in os.environ:
-        print(json.dumps(event))
+    # if "DEBUG" in os.environ:
+    print(json.dumps(event))
 
-    qsp = event.get("queryStringParameters", {})
+    qsp = event.get("queryStringParameters") or {}
 
     filename = qsp.get("filename", None)
     if not filename:
-        message = "expected ?filename= parameter in URL"
+        message = "Error: expected ?filename= parameter in URL"
         print(message)
         return {
             "statusCode": 500,
@@ -27,9 +27,10 @@ def lambda_handler(event, context):
             "body": message,
         }
 
-    ssm_param_name = os.environ.get("BUCKET_SSM_PARAM", None)
+    key = "BUCKET_SSM_PARAM"
+    ssm_param_name = os.environ.get(key)
     if not ssm_param_name:
-        message = "missing parameter BUCKET_SSM_PARAM"
+        message = f"Error: missing parameter {key}"
         print(message)
         return {
             "statusCode": 500,
@@ -45,7 +46,9 @@ def lambda_handler(event, context):
         resp = ssm_client.get_parameter(Name=ssm_param_name, WithDecryption=True)
 
     except ClientError as exc:
-        message = f"error retrieving SSM parameter named {ssm_param_name}: {exc}"
+        message = (
+            f"Error: Could not retrieve SSM parameter named {ssm_param_name}: {exc}"
+        )
         print(message)
         return {
             "statusCode": 500,
@@ -68,7 +71,7 @@ def lambda_handler(event, context):
 
     except ClientError as exc:
         message = (
-            f"error retrieving s3://{feed_object.bucket_name}/{feed_object.key}: {exc}"
+            f"Error: retrieving s3://{feed_object.bucket_name}/{feed_object.key}: {exc}"
         )
         print(message)
         return {
@@ -96,7 +99,7 @@ def lambda_handler(event, context):
 
     if feed_object.content_length > MAX_PAYLOAD_SIZE:
         message = (
-            f"s3://{feed_object.bucket_name}/{feed_object.key}"
+            f"Error: s3://{feed_object.bucket_name}/{feed_object.key}"
             + f" is {feed_object.content_length} bytes, which exceeds "
             + f" the maximum size of {MAX_PAYLOAD_SIZE} bytes"
         )
