@@ -6,6 +6,8 @@ This CDK stack implements a URL feed for use by Cisco Secure Management Center.
 
 [Security Intelligence Lists and Feeds](https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/management-center/device-config/720/management-center-device-config-72/objects-object-mgmt.html#ID-2243-00000135)
 
+[Custom Security Intelligence Feeds](https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/management-center/device-config/720/management-center-device-config-72/objects-object-mgmt.html#ID-2243-00000278)
+
 # Functionality
 
 Once deployed, the there will be a URL that will return either a feed of URLs or an MD5 hash of the URL file.
