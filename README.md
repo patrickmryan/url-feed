@@ -19,13 +19,13 @@ the complete URL is entered into the Cisco management center. The specific URL w
 
 The syntax of the feed URL is as follows:
 
-`https://<URL>/?filename=<URL filename>`
+`https://<URL>/?filename=<filename>`
 
 The MD5 has URL is the same except that `md5` is added as a query string parameter.
 
-`https://<URL>/?filename=<URL filename>&md5`
+`https://<URL>/?filename=<filename>&md5`
 
-The API can be tested via `curl` on the command line:
+Note that `filename` value equates to an S3 object key. The API can be tested via `curl` on the command line:
 
 ```
 [~/ec/projects/ose/url-feed] | curl 'https://fapnrqdul7.execute-api.us-east-1.amazonaws.com/prod/?filename=badurls.txt'
